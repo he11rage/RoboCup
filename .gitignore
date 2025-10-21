@@ -63,3 +63,4 @@ Thumbs.db
 
 # Custom cache directory
 mymp_cache/
+*.Zone.Identifier

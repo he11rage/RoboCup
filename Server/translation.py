@@ -71,10 +71,6 @@ while True:
             s >= lower_yellow[1] and s <= upper_yellow[1] and
             v >= lower_yellow[2] and v <= upper_yellow[2]):
                 print(f"Найден желтый цвет!")
-            
-        
-
-    https://docs.google.com/document/d/1KsOgbiIUKxINDJic4RRzG61ljN5aniIKy6TPMQUbFwg/edit?tab=t.0
 
     #frame[100] = frame[100]+300
     #print(frame[100])
