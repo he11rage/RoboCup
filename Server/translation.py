@@ -1,5 +1,6 @@
 from datetime import datetime
 from time import sleep, time
+from math import degrees, atan2
 
 import cv2
 import numpy as np
@@ -47,12 +48,11 @@ while True:
     cv2.circle(frame, (width_center, height_center), 5, (0, 255, 0), -1)
 
 
+
     frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(frame_hsv, lower_orange, upper_orange)
     
     mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     eroded = cv2.erode(mask, kernel, iterations=3)
 
@@ -60,13 +60,25 @@ while True:
     
     dilated_bgr = cv2.cvtColor(dilated, cv2.COLOR_GRAY2BGR)
 
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
     if contours:
         c = max(contours, key=cv2.contourArea)
         M = cv2.moments(c)
         if M["m00"] != 0:
             cx = int(M["m10"] / M["m00"])
             cy = int(M["m01"] / M["m00"])
-            cv2.circle(frame, (cx, cy), 5, (0, 255, 0), -1)
+            center_point = (width_center, height_center)
+            object_point = (cx, cy)
+            cv2.circle(frame, object_point, 5, (0, 255, 0), -1)
+            cv2.line(frame, center_point, object_point, (0, 255, 0), 2)
+            x1, y1 = object_point
+            x2, y2 = center_point
+            dx = x2 - x1
+            dy = y2 - y1
+            angle_rad = atan2(dx, dy)
+            angle_deg = degrees(angle_rad)
+            print(f"Угол между точками: {angle_deg}")
 
     out.write(frame)
 
