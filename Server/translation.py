@@ -33,49 +33,42 @@ last_processed_time = time()
 # Интервал в секундах, например 1 секунда
 processing_interval = 1.0 
 
-lower_yellow = np.array([15, 100, 100])
-upper_yellow = np.array([45, 255, 255])
+lower_orange = np.array([5, 150, 150])
+upper_orange = np.array([25, 255, 255])
+
+kernel = np.ones((3, 3), dtype=np.uint8)
 
 start = time()
 while True:
     frame = picam2.capture_array()
     height, width, _ = frame.shape
-    #print(f"Высота: {height}, Ширина: {width}")
-    #frame = np.zeros((height, width, 3), np.uint8)
-    # create a rectangle
-  #  color = colors[curcolor]
-  #  curcolor += 1
-  #  curcolor %= len(colors)
-  #  for y in range(0, int(frame.shape[0] / 2)):
-  #      for x in range(0, int(frame.shape[1] / 2)):
-  #          frame[y][x] = color
     height_center = height // 2
     width_center = width // 2    
-    cv2.rectangle(frame, (width_center - 5, height_center - 5),  (width_center + 5, height_center + 5), (0, 255, 0), 2)
+    cv2.circle(frame, (width_center, height_center), 5, (0, 255, 0), -1)
+
+
+    frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    mask = cv2.inRange(frame_hsv, lower_orange, upper_orange)
     
+    mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
 
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    current_time = time()
+    eroded = cv2.erode(mask, kernel, iterations=3)
 
-    if current_time - last_processed_time >= processing_interval:      
-        # Создаем массив 1x1 с цветом центрального пикселя и конвертируем его в HSV
-        
-        last_processed_time = current_time
-        center_pixel_bgr = frame[height_center, width_center]
-        center_pixel_rgb = center_pixel_bgr[::-1]
-        print(f"RGB-значение центрального пикселя: {center_pixel_rgb}")
-        center_pixel_hsv = cv2.cvtColor(np.uint8([[center_pixel_bgr]]), cv2.COLOR_BGR2HSV)
-        h, s, v = center_pixel_hsv[0, 0]
+    dilated = cv2.dilate(eroded, kernel, iterations=3)
+    
+    dilated_bgr = cv2.cvtColor(dilated, cv2.COLOR_GRAY2BGR)
 
-        if (h >= lower_yellow[0] and h <= upper_yellow[0] and
-            s >= lower_yellow[1] and s <= upper_yellow[1] and
-            v >= lower_yellow[2] and v <= upper_yellow[2]):
-                print(f"Найден желтый цвет!")
+    if contours:
+        c = max(contours, key=cv2.contourArea)
+        M = cv2.moments(c)
+        if M["m00"] != 0:
+            cx = int(M["m10"] / M["m00"])
+            cy = int(M["m01"] / M["m00"])
+            cv2.circle(frame, (cx, cy), 5, (0, 255, 0), -1)
 
-    #frame[100] = frame[100]+300
-    #print(frame[100])
     out.write(frame)
-#   print("%s frame written to the server" % datetime.now())
 
     now = time()
     diff = (1 / fps) - now - start
