@@ -7,7 +7,7 @@ const float POWER_COEF = 2.55f;  // Коэффициент для перевод
 const int POWER_FREE = 0;
 const int POWER_MAX = 100;
 
-const int DT_OUTPUT_PINS[DT_OUTPUT_COUNT] = { 2, 3, 4, 6 };
+const int DT_OUTPUT_PINS[DT_OUTPUT_COUNT] = { 2, 4, 6, 8 };
 const int FI_pins[MOTOR_COUNT] = { 3, 7, 11 };  // Forward input pins
 const int BI_pins[MOTOR_COUNT] = { 5, 9, 13 };  // Backward input pins
 
@@ -40,10 +40,11 @@ void motors(int powers[MOTOR_COUNT]) {
   }
 }
 // обертка
-void motors(int p0, int p1) {
+void motors(int p0, int p1, int p2) {
   int powers[MOTOR_COUNT] = { 0 };
   if (MOTOR_COUNT > 0) powers[0] = p0;
   if (MOTOR_COUNT > 1) powers[1] = p1;
+  if (MOTOR_COUNT > 2) powers[2] = p2;
   motors(powers);
 }
 
@@ -139,7 +140,7 @@ void detect_ball() {
 
 
 // // Жесткое торможение (BRAKE): оба входа HIGH (короткое замыкание на мотор)
-// void motorBrake() {
+// void motorBrake() { 
 //   digitalWrite(FI, HIGH);
 //   digitalWrite(BI, HIGH);
 // }
