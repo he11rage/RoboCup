@@ -8,8 +8,8 @@ const int POWER_FREE = 0;
 const int POWER_MAX = 100;
 
 const int DT_OUTPUT_PINS[DT_OUTPUT_COUNT] = { 2, 4, 6, 8 };
-const int FI_pins[MOTOR_COUNT] = { 3, 7, 11 };  // Forward input pins
-const int BI_pins[MOTOR_COUNT] = { 5, 9, 13 };  // Backward input pins
+const int FI_pins[MOTOR_COUNT] = { 3, 7, 13 };  // Forward input pins
+const int BI_pins[MOTOR_COUNT] = { 5, 9, 11 };  // Backward input pins
 
 void motor(int power, int FI, int BI) {
   // Управление одним движком
@@ -79,7 +79,8 @@ void setMuxChannel(byte channel) {
     digitalWrite(DT_OUTPUT_PINS[i], (channel >> i) & 1);
   }
 }
-void detect_ball() {
+
+int detect_ball() {
   int active_count = 0;  // счетчик активных (сработавших) датчиков
   int values[16];        // буфер для 16 измерений с мультиплексора
 
@@ -119,6 +120,7 @@ void detect_ball() {
     Serial.println(max_index);
   } else {
     Serial.println("Ball not detected");
+    return -1; // Возвращаем -1, если мяч не найден
   }
 
 
@@ -135,7 +137,11 @@ void detect_ball() {
     Serial.print("Angle to ball: ");
     Serial.print(angle_deg);
     Serial.println(" deg");
+    
+    return (int)angle_deg; // Возвращаем угол
   }
+  
+  return -1; // На всякий случай
 }
 
 
