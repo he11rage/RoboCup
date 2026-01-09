@@ -5,6 +5,12 @@ from math import degrees, atan2
 import cv2
 import numpy as np
 from picamera2 import Picamera2
+import serial
+
+ser = serial.Serial('/dev/ttyS0', 9600, timeout=1)
+ser.flush()
+
+
 picam2 = Picamera2()
 picam2.preview_configuration.main.size = (800,600)
 picam2.preview_configuration.main.format = "RGB888"
@@ -34,8 +40,8 @@ last_processed_time = time()
 # Интервал в секундах, например 1 секунда
 processing_interval = 1.0 
 
-lower_orange = np.array([5, 150, 150])
-upper_orange = np.array([25, 255, 255])
+lower_orange = np.array([20, 100, 100])
+upper_orange = np.array([30, 255, 255])
 
 kernel = np.ones((3, 3), dtype=np.uint8)
 
@@ -47,9 +53,18 @@ while True:
     width_center = width // 2    
     cv2.circle(frame, (width_center, height_center), 5, (0, 255, 0), -1)
 
+    # --- Начало кода для ROI ---
+    # Определяем радиус центральной зоны (например, 200 пикселей)
+    roi_radius = 200
+    # Создаем черную маску того же размера, что и кадр
+    mask_roi = np.zeros(frame.shape[:2], dtype="uint8")
+    # Рисуем белый круг в центре маски
+    cv2.circle(mask_roi, (width_center, height_center), roi_radius, 255, -1)
+    # Применяем маску к кадру (все вне белого круга станет черным)
+    masked_frame = cv2.bitwise_and(frame, frame, mask=mask_roi)
+    # --- Конец кода для ROI ---
 
-
-    frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    frame_hsv = cv2.cvtColor(masked_frame, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(frame_hsv, lower_orange, upper_orange)
     
     mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
@@ -70,17 +85,23 @@ while True:
             cy = int(M["m01"] / M["m00"])
             center_point = (width_center, height_center)
             object_point = (cx, cy)
-            cv2.circle(frame, object_point, 5, (0, 255, 0), -1)
-            cv2.line(frame, center_point, object_point, (0, 255, 0), 2)
+            cv2.circle(masked_frame, object_point, 5, (0, 255, 0), -1)
+            cv2.line(masked_frame, center_point, object_point, (0, 255, 0), 2)
             x1, y1 = object_point
             x2, y2 = center_point
             dx = x2 - x1
             dy = y2 - y1
             angle_rad = atan2(dx, dy)
             angle_deg = degrees(angle_rad)
-            print(f"Угол между точками: {angle_deg}")
+            
+            angle_str = str(int(angle_deg)) + '\n' 
+            ser.write(angle_str.encode('utf-8'))
+            print(f"Отправлен угол: {int(angle_deg)}")
+            # sleep(1)
 
-    out.write(frame)
+
+
+    out.write(masked_frame)
 
     now = time()
     diff = (1 / fps) - now - start

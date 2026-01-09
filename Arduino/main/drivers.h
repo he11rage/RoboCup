@@ -8,9 +8,8 @@ const int POWER_FREE = 0;
 const int POWER_MAX = 100;
 
 const int DT_OUTPUT_PINS[DT_OUTPUT_COUNT] = { 2, 4, 6, 8 };
-const int FI_pins[MOTOR_COUNT] = { 3, 7, 13 };  // Forward input pins
-const int BI_pins[MOTOR_COUNT] = { 5, 9, 11 };  // Backward input pins
-
+const int FI_pins[MOTOR_COUNT] = { 13, 9, 5};  // Forward input pins
+const int BI_pins[MOTOR_COUNT] = { 11, 7, 3 };  // Backward input pins
 void motor(int power, int FI, int BI) {
   // Управление одним движком
   int backward_power = 0;
@@ -60,11 +59,11 @@ void init_kicker_pin() {
 }
 
 void kick() {
-  Serial.println("Kick ON!");
+  // Serial.println("Kick ON!");
   digitalWrite(KICKER, HIGH);  // Включаем реле
   delay(100);                  // 0.1 сек удержание
   digitalWrite(KICKER, LOW);   // Отключаем реле
-  Serial.println("Kick OFF!");
+  // Serial.println("Kick OFF!");
 }
 
 void init_detect_pins() {
@@ -114,12 +113,12 @@ int detect_ball() {
   }
 
   if (min_index != -1 && max_index != -1) {
-    Serial.print("Ball between sensors ");
-    Serial.print(min_index);
-    Serial.print(" and ");
-    Serial.println(max_index);
+    // Serial.print("Ball between sensors ");
+    // Serial.print(min_index);
+    // Serial.print(" and ");
+    // Serial.println(max_index);
   } else {
-    Serial.println("Ball not detected");
+    // Serial.println("Ball not detected");
     return -1; // Возвращаем -1, если мяч не найден
   }
 
@@ -134,9 +133,9 @@ int detect_ball() {
       angle_deg += 360.0f;                      // преобразуем отрицательный угол в эквивалентный положительный
     }
 
-    Serial.print("Angle to ball: ");
-    Serial.print(angle_deg);
-    Serial.println(" deg");
+    // Serial.print("Angle to ball: ");
+    // Serial.print(angle_deg);
+    // Serial.println(" deg");
     
     return (int)angle_deg; // Возвращаем угол
   }
